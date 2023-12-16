@@ -3,6 +3,9 @@ title: 'Historic redlining and biodiveristy observations'
 author: "Amanda Herbst"
 output: html_document
 date: "2023-12-15"
+editor_options: 
+  markdown: 
+    wrap: 72
 ---
 
 ```{r setup, include=FALSE}
@@ -142,11 +145,12 @@ la_county <- st_read("~/Documents/github/eds223-assignments/assignment-2-amandah
   filter(CNTY_NAME == "Los Angeles County")
 ```
 
-#### Understanding present day environmental justice issues in LA 
+#### Understanding present day environmental justice issues in LA
 
 **Wastewater Discharge**
 
-Find and visualize which LA census block groups are above the 95th percentile of national values for wastewater discharge. 
+Find and visualize which LA census block groups are above the 95th
+percentile of national values for wastewater discharge.
 
 ```{r }
 # map of LA
@@ -182,7 +186,8 @@ ggplotly(m1)
 
 **In numbers**
 
-Find the percent of census block groups that have less than 5% of the population considered low income:
+Find the percent of census block groups that have less than 5% of the
+population considered low income:
 
 ```{r }
 high_inc <- la_county %>% 
@@ -195,7 +200,9 @@ high_inc <- la_county %>%
 print(paste(round(high_inc,2), "% of LA census block groups have less than 5% of the population considered low income"))
 ```
 
-Find the percent of census block groups that are: above the 80th percentile for Particulate Matter 2.5 AND above the 80th percentile for Superfund proximity
+Find the percent of census block groups that are: above the 80th
+percentile for Particulate Matter 2.5 AND above the 80th percentile for
+Superfund proximity
 
 ```{r }
 # percent of census block groups that are above 80th percentile for both PM 2.5 and Superfund proximity
@@ -216,7 +223,8 @@ LA_redlining <- st_read("https://dsl.richmond.edu/panorama/redlining/static/citi
   st_make_valid()
 ```
 
-Visualize historical redlining boundaries in LA, indicating HOLC grade by color:
+Visualize historical redlining boundaries in LA, indicating HOLC grade
+by color:
 
 ```{r }
 # plot redlining areas, color by HOLC Grade
@@ -228,10 +236,15 @@ ggplot() +
   theme_bw()
 ```
 
-Find the number of census block groups that fall within areas with HOLC grades:
+Find the number of census block groups that fall within areas with HOLC
+grades:
 
-- the `LA_redlining` and `la_county` data are in different coordinate reference systems, so we need to reproject one of them before continuing
-- we can do a spatial inner join between the two datasets so that the resulting dataset contains only census block groups that are *within* areas with a historic HOLC grade.
+-   the `LA_redlining` and `la_county` data are in different coordinate
+    reference systems, so we need to reproject one of them before
+    continuing
+-   we can do a spatial inner join between the two datasets so that the
+    resulting dataset contains only census block groups that are
+    *within* areas with a historic HOLC grade.
 
 ```{r}
 # st_crs(LA_redlining)
@@ -251,7 +264,12 @@ holc_block_grps <- nrow(block_groups_holc_join)
 print(paste(holc_block_grps, "census block groups in LA fall within areas with HOLC grades"))
 ```
 
-Based on EJScreen data, summarize current conditions in the census block groups that were within areas with a HOLC grade. We will group by HOLC grade to compare the conditions across areas that were historically graded A, B, C, and D. Let's look at the average % low income, percentile for particulate matter 2.5, percentile for low life expectancy, and percentil for air toxics cancer risk.
+Based on EJScreen data, summarize current conditions in the census block
+groups that were within areas with a HOLC grade. We will group by HOLC
+grade to compare the conditions across areas that were historically
+graded A, B, C, and D. Let's look at the average % low income,
+percentile for particulate matter 2.5, percentile for low life
+expectancy, and percentil for air toxics cancer risk.
 
 ```{r }
 # summary table of means grouped by grade
@@ -274,14 +292,18 @@ lowest average percent of low income (15%), and had an average of the
 lowest percentiles, comparatively, for PM 2.5, low life expectancy, and
 air toxics cancer risk. In comparison, areas with a grade of "D" had the
 highest average percent of low income (39%) and had the highest average
-percentiles for PM 2.5, low life expectancy, and air toxics cancer
-risk.
+percentiles for PM 2.5, low life expectancy, and air toxics cancer risk.
 
 ### Investigate the legacy of redlining in biodiversity observations
 
-Import citizen science bird observations from direct filepath and select observations from the year 2022. With another spatial inner join between `LA_redlining` and `la_birds_22`, filter for observations that fall within neighborhoods with HOLC grades. Then find the percent of observations within each redlining category and visualize the results in a plot.
- 
-- always check for matching CRS's!!
+Import citizen science bird observations from direct filepath and select
+observations from the year 2022. With another spatial inner join between
+`LA_redlining` and `la_birds_22`, filter for observations that fall
+within neighborhoods with HOLC grades. Then find the percent of
+observations within each redlining category and visualize the results in
+a plot.
+
+-   always check for matching CRS's!!
 
 ```{r }
 # read in birds data
@@ -322,9 +344,9 @@ ggplot(data = holc_birds_pct) +
   theme_bw()
 ```
 
-Since Ellis-Soto and co-authors found that redlined neighborhoods
-remain the most undersampled areas across 195 US cities, it is
-surprising that the largest share of bird observations are in
-historically redlined areas of Los Angeles. This could potentially be a
-result of LA's population skyrocketing since 1933 and consequently
-leading to gentrification of redlined neighborhoods.
+Since Ellis-Soto and co-authors found that redlined neighborhoods remain
+the most undersampled areas across 195 US cities, it is surprising that
+the largest share of bird observations are in historically redlined
+areas of Los Angeles. This could potentially be a result of LA's
+population skyrocketing since 1933 and consequently leading to
+gentrification of redlined neighborhoods.
