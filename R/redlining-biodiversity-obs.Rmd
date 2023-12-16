@@ -269,7 +269,7 @@ groups that were within areas with a HOLC grade. We will group by HOLC
 grade to compare the conditions across areas that were historically
 graded A, B, C, and D. Let's look at the average % low income,
 percentile for particulate matter 2.5, percentile for low life
-expectancy, and percentil for air toxics cancer risk.
+expectancy, and percentile for air toxics cancer risk.
 
 ```{r }
 # summary table of means grouped by grade
