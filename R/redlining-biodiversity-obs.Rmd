@@ -59,13 +59,20 @@ based on these data.
 Check out coverage by
 [EOS](https://eos.org/articles/bird-biodiversity-reports-reflect-cities-redlined-past?utm_source=EosBuzz&mkt_tok=OTg3LUlHVC01NzIAAAGOx3ckQPpeDY3QyFKdUnBSYqILj3qLrgb_Q2lasphwcF90xEzMgjZFUo3NHsw3caXDcZe6I8D8qdVsSRr3wzhb6LKAQRgNo8ffhjieEbDwMw).
 
-### Data
+## Workflow Goals
 
-#### EJScreen
+This workflow will investigate the lasting impacts of the HOLC grading system on the city of Los Angeles by:
 
-We will be working with data from the United States Environmental
-Protection Agency's EJScreen: Environmental Justice Screening and
-Mapping Tool.
+- Using EJScreen data to map current environmental and demographic indicators in LA
+- Comparing current conditions across census block groups in LA that were historically redlined
+- Comparing percent of reported bird observations across areas in LA that were historically redlined
+
+## Data Descriptions
+
+### EJScreen
+
+The United States Environmental Protection Agency's Environmental Justice Screening and
+Mapping Tool is an effort to provide national data for advancing their goals and supporting others interested in environmental justice.
 
 According to the [US EPA
 website](https://www.epa.gov/ejscreen/purposes-and-uses-ejscreen):
@@ -84,18 +91,12 @@ website](https://www.epa.gov/ejscreen/purposes-and-uses-ejscreen):
 > - to create a common starting point between the agency and the public
 > when looking at issues related to environmental justice.
 
-EJScreen provides on environmental and demographic information for the
+EJScreen provides environmental and demographic information for the
 US at the Census [tract](https://en.wikipedia.org/wiki/Census_tract) and
-[block group](https://en.wikipedia.org/wiki/Census_block_group) levels.
-You will be working with block group data that has been downloaded from
-the [EPA site](https://www.epa.gov/ejscreen/download-ejscreen-data). To
-understand the associated data columns, you will need to explore the
-Technical Documentation and column description spreadsheet available in
-the data folder. I also encourage you to explore the [limitations and
-caveats](https://www.epa.gov/ejscreen/limitations-and-caveats-using-ejscreen)
-of the data.
+[block group](https://en.wikipedia.org/wiki/Census_block_group) levels. Block group data has been downloaded, and stored locally, from
+the [EPA site](https://www.epa.gov/ejscreen/download-ejscreen-data).
 
-#### Mapping Inequality
+### Mapping Inequality
 
 A team of researchers, led by the [Digital Scholarship
 Lab](https://dsl.richmond.edu/) at the University of Richmond have
@@ -103,7 +104,7 @@ digitized maps and information from the HOLC as part of the [Mapping
 Inequality](https://dsl.richmond.edu/panorama/redlining/#loc=5/39.1/-94.58)
 project.
 
-We will be working with maps of HOLC grade designations for Los Angeles.
+This workflow uses maps of HOLC grade designations for Los Angeles via URL.
 Information on the data can be found
 [here](https://dsl.richmond.edu/panorama/redlining/#loc=5/39.1/-94.58&text=downloads).[^5]
 
@@ -112,21 +113,17 @@ Information on the data can be found
     Robert K. Nelson and Edward L. Ayers, accessed October 17, 2023,
     <https://dsl.richmond.edu/panorama/redlining/>
 
-#### Biodiversity observations
+### Biodiversity observations
 
 The [Global Biodiversity Information Facility](gbif.org) is the largest
 aggregator of biodiversity observations in the world. Observations
-typically include a location and date that a species was observed.
-
-We will be working observations of birds from 2021 onward.
+typically include a location and date that a species was observed. This workflow will use bird observations in 2022.
 
 ## Legacy of Redlining Workflow
 
 ### 1. Investigate the legacy of redlining in current environmental (in)justice
 
 #### Import libraries and data
-
-Load relevant packages.
 
 ```{r }
 library(tidyverse)
@@ -135,7 +132,7 @@ library(plotly)
 library(gt)
 ```
 
-Read in EJScreen data and filter to Los Angeles County
+Since we are analyzing LA in this workflow, we will read in EJScreen data and filter to Los Angeles County in the same step so we have a much smaller dataset to start with.
 
 ```{r }
 # read in ejscreen data with direct filepath
@@ -149,8 +146,7 @@ la_county <- st_read("~/Documents/github/eds223-assignments/assignment-2-amandah
 
 **Wastewater Discharge**
 
-Find and visualize which LA census block groups are above the 95th
-percentile of national values for wastewater discharge.
+The wastewater discharge indicator in EJScreen assigns a score to each census block group based on the pollution and toxicity of nearby streams and rivers. LA has limited access to local clean water and often deals with extremely polluted water after a storm. Let's visualize the wastewater discharge indicator for LA census block groups and add centroids for block groups that are above the 95th percentile of national values for wastewater discharge. (If this is taking too long, don't run the `ggplotly` line, it is not necessary, just makes the map interactive.) If you want to save the output, uncomment the last line!
 
 ```{r }
 # map of LA
@@ -175,19 +171,26 @@ m1 <- ggplot() +
           color = 'magenta') +
   labs(x = "Longtitude",
        y = "Latitude",
-       fill = "Waste water discharge") +
+       fill = "Wastewater discharge") +
   # choose x axis breaks so longitude is readable
   scale_x_continuous(breaks = c(-119, -118.6, -118.2, -117.8)) +
   theme_bw()
 
 # make interactive to better see where the centroids are
 ggplotly(m1)
+
+# save plot in Outputs folder
+#ggsave("la_wastewater_discharge.png", plot = m1, path = "../Outputs")
 ```
+
+
 
 **In numbers**
 
-Find the percent of census block groups that have less than 5% of the
-population considered low income:
+Now let's use EJScreen data to investigate demographic (% low income) and environmental (PM 2.5 and Superfund proximity) indicators. 
+
+We can calculate what percent of census block groups have less than 5% of the
+population considered low income by filtering to groups with a percent income less than 0.05. Each row corresponds to a block group so the percent can be calculated by dividing the number of rows of the filtered dataframe by the number of rows of the original dataframe * 100.
 
 ```{r }
 high_inc <- la_county %>% 
@@ -200,9 +203,9 @@ high_inc <- la_county %>%
 print(paste(round(high_inc,2), "% of LA census block groups have less than 5% of the population considered low income"))
 ```
 
-Find the percent of census block groups that are: above the 80th
+We can calculate the percent of census block groups that are above the 80th
 percentile for Particulate Matter 2.5 AND above the 80th percentile for
-Superfund proximity
+Superfund proximity in a similar way as above. First, the ejscreen data is filtered where the percentiles for PM 2.5 and Superfund proximity are both over 80, then those number of rows are divided by the number of rows of the original dataframe * 100.
 
 ```{r }
 # percent of census block groups that are above 80th percentile for both PM 2.5 and Superfund proximity
@@ -215,7 +218,7 @@ print(paste(round(pm_sf,2), "% of LA census block groups are above the 80th perc
 
 #### LA redlining
 
-Import maps of HOLC grade designations for Los Angeles
+Maps of HOLC grade designations for Los Angeles can be imported from the Mapping Inequality project via URL as an `sf` object and geometries are made valid with `st_make_valid`.
 
 ```{r }
 LA_redlining <- st_read("https://dsl.richmond.edu/panorama/redlining/static/citiesData/CALosAngeles1939/geojson.json",
@@ -223,38 +226,36 @@ LA_redlining <- st_read("https://dsl.richmond.edu/panorama/redlining/static/citi
   st_make_valid()
 ```
 
-Visualize historical redlining boundaries in LA, indicating HOLC grade
-by color:
+We can explore the redlining data by plotting the historical boundaries in LA, indicating HOLC grade
+by color. If you want to save the output, uncomment the last line!
 
 ```{r }
 # plot redlining areas, color by HOLC Grade
-ggplot() +
+m2 <- ggplot() +
   geom_sf(data = LA_redlining, aes(fill = grade)) +
   labs(x = "Longtitude",
        y = "Latitude",
        fill = "HOLC Grade") +
   theme_bw()
+
+m2
+
+# save map in Outputs folder
+#ggsave("la_holc_census_block_grps.png", plot = m2, path = "../Outputs")
 ```
 
-Find the number of census block groups that fall within areas with HOLC
-grades:
-
--   the `LA_redlining` and `la_county` data are in different coordinate
-    reference systems, so we need to reproject one of them before
-    continuing
--   we can do a spatial inner join between the two datasets so that the
-    resulting dataset contains only census block groups that are
-    *within* areas with a historic HOLC grade.
+To investigate current conditions in historically redlined areas, we can find the number of census block groups that fall within areas with HOLC grades. First, the `LA_redlining` and `la_county` data are in different coordinate reference systems, so one is reprojected before continuing. Then, a spatial inner join can be performed between the two datasets so that the resulting dataset contains only census block groups that are *within* areas with a historic HOLC grade.
 
 ```{r}
-# st_crs(LA_redlining)
-# LA_redlinging is in EPSG:4326
-
-# st_crs(la_county)
+# check CRS!
+st_crs(la_county) == st_crs(LA_redlining)
 # la_county is in EPSG:3857
+# LA_redlinging is in EPSG:4326
+```
 
+```{r}
 # transfrom LA_redlining to same crs as la_county
-LA_redlining3857 <- st_transform(LA_redlining, "EPSG:3857")
+LA_redlining3857 <- st_transform(LA_redlining, st_crs(la_county))
 
 # block groups that have intersecting geometries as LA_redlining HOLC grades
 # left = FALSE for an inner join
@@ -264,16 +265,16 @@ holc_block_grps <- nrow(block_groups_holc_join)
 print(paste(holc_block_grps, "census block groups in LA fall within areas with HOLC grades"))
 ```
 
-Based on EJScreen data, summarize current conditions in the census block
+Based on EJScreen data, we can now summarize current conditions in the census block
 groups that were within areas with a HOLC grade. We will group by HOLC
 grade to compare the conditions across areas that were historically
 graded A, B, C, and D. Let's look at the average % low income,
 percentile for particulate matter 2.5, percentile for low life
-expectancy, and percentile for air toxics cancer risk.
+expectancy, and percentile for air toxics cancer risk. If you want to save the output, uncomment the last line!
 
 ```{r }
 # summary table of means grouped by grade
-block_groups_holc_join %>%
+t1 <- block_groups_holc_join %>%
   st_drop_geometry() %>% 
   group_by(grade) %>% 
   summarise(low_inc_pct_avg = mean(LOWINCPCT, na.rm = TRUE),
@@ -282,6 +283,11 @@ block_groups_holc_join %>%
             p_cancer_avg = mean(P_CANCER, na.rm = TRUE)) %>% 
   gt() %>% 
   tab_header(title = "Current EJ Conditions in LA by HOLC grade")
+
+t1
+
+# save table as image in Outputs folder
+#gtsave(t1, "la_current_conditions_tbl.png", path = "../Outputs")
 ```
 
 Based on the averages calculated, the HOLC grade for a census block
@@ -296,14 +302,9 @@ percentiles for PM 2.5, low life expectancy, and air toxics cancer risk.
 
 ### Investigate the legacy of redlining in biodiversity observations
 
-Import citizen science bird observations from direct filepath and select
-observations from the year 2022. With another spatial inner join between
-`LA_redlining` and `la_birds_22`, filter for observations that fall
-within neighborhoods with HOLC grades. Then find the percent of
-observations within each redlining category and visualize the results in
-a plot.
-
--   always check for matching CRS's!!
+To add bird biodiveristy observations to the analysis, import citizen science bird observations from a direct filepath and select observations from the year 2022. With another spatial inner join between
+`LA_redlining` and `la_birds_22` (after checking for matching CRS's), filter for observations that fall
+within neighborhoods with HOLC grades. 
 
 ```{r }
 # read in birds data
@@ -313,14 +314,19 @@ la_birds <- st_read("~/Documents/github/eds223-assignments/assignment-2-amandahe
 # filter birds to 2022
 la_birds_22 <- la_birds %>% 
   filter(year == 2022)
+```
 
-#check crs
-# st_crs(la_birds_22)
-# EPSG:4326
-# st_crs(LA_redlining)
-# EPSG:4326
-# CRS matches!
+```{r}
+# Check crs!
+st_crs(la_birds_22) == st_crs(LA_redlining)
+# both EPSG:4326
+```
 
+Matching CRS's means we can continue without having to reproject!
+
+Once joined, the percent of bird observations within each redlining category can be calculated by grouping by HOLC grade, then dividing the number of observations in each grade by the total number of observations (number of rows in original joined dataframe). Visualize these percentages with a bar chart for readability. If you want to save the output, uncomment the last line!
+
+```{r}
 # bird observations in neighborhoods with HOLC grades
 # inner join using "left = FALSE"
 holc_birds <- st_join(LA_redlining, la_birds_22, left = FALSE)
@@ -335,13 +341,17 @@ holc_birds_pct <- holc_birds %>%
 
 
 # plot % of bird observations by HOLC
-ggplot(data = holc_birds_pct) +
+p1 <- ggplot(data = holc_birds_pct) +
   geom_col(aes(x = grade, y = bird_pct_obs, fill = grade),
            show.legend = FALSE) +
   labs(x = "HOLC Grade",
        y = "% Bird Observations",
        title = "Bird Observations in Redlining Categories") +
   theme_bw()
+
+p1 
+
+#ggsave("bird_obs_by_holc_grade.png", plot = p1, path = "../Outputs")
 ```
 
 Since Ellis-Soto and co-authors found that redlined neighborhoods remain
