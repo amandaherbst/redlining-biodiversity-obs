@@ -2,6 +2,7 @@
 
 A workflow investigating the impact of historical redlining in the city of Los Angeles on environmental (in)justice and the location and frequency of reported bird biodiversity observations. 
 
+## Objectives
 - Use EJScreen data to map current environmental and demographic indicators in LA
 - Compare current conditions across census block groups in LA that were historically redlined
 - Compare percent of reported bird observations across areas in LA that were historically redlined
